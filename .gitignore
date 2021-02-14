@@ -5,6 +5,7 @@
 ### My Setting ###
 
 core.*
+*.swp
 
 ### C ###
 # Prerequisites
