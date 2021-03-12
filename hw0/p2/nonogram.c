@@ -31,6 +31,9 @@ bool is_valid_row(int i) {
         if (acc != row_rules[i].nums[n])
             return false;
     }
+    while (j < M)
+        if (board[i][j++] == BLACK)
+            return false;
     return true;
 }
 
@@ -48,6 +51,9 @@ bool is_valid_col(int j) {
         if (acc != col_rules[j].nums[n])
             return false;
     }
+    while (i < N)
+        if (board[i++][j] == BLACK)
+            return false;
     return true;
 }
 
@@ -67,7 +73,6 @@ bool is_valid() {
 bool solve(int x, int y) {
     if (x == N)
         return is_valid();
-
     int i, j;
 
     // Find next cell
@@ -119,7 +124,10 @@ int main(int argc, char *argv[]) {
             board[i][j] = BLANK;
         }
     }
-    solve(0, 0);
+    if (!solve(0, 0)) {
+        printf("Cannot solve!\n");
+        return 1;
+    }
 
     // print
     for (i = 0; i < N; ++i) {
