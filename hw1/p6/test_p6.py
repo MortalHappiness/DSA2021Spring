@@ -38,6 +38,9 @@ class TestP6(unittest.TestCase):
     def test_6_mix(self):
         self.run_testcase(6)
 
+    def test_7_mix(self):
+        self.run_testcase(7)
+
 
 if __name__ == "__main__":
     unittest.main()
