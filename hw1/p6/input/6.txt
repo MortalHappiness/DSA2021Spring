@@ -1,0 +1,12 @@
+10 10
+-1 4 -8 0 -5 -7 -1 -4 5 -4
+Reverse 1 6
+Insert 2 8
+Query 1 7 4
+Insert 1 -9
+Reverse 3 5
+Delete 10
+Query 2 4 2
+Insert 8 -2
+Reverse 3 4
+Reverse 3 7

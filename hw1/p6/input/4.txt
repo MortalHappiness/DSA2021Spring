@@ -1,0 +1,12 @@
+10 10
+3 -8 -2 9 -2 -9 -6 0 3 0
+Query 4 4 1
+Query 2 8 6
+Query 7 9 3
+Query 7 9 1
+Query 5 7 2
+Query 2 8 7
+Query 7 7 1
+Query 3 9 6
+Query 1 7 4
+Query 1 3 1
