@@ -3,7 +3,7 @@
 Delete 10
 Reverse 1 9
 Delete 2
-Insert 0 -5
+Insert 1 -5
 Insert 4 9
 Reverse 3 4
 Insert 6 -3
