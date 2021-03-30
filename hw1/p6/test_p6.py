@@ -20,26 +20,35 @@ class TestP6(unittest.TestCase):
                                          timeout=self.timeout, input=input_data)
         self.assertEqual(output, ans)
 
-    def test_1_sample(self):
+    def test_01_sample(self):
         self.run_testcase(1)
 
-    def test_2_sample(self):
+    def test_02_sample(self):
         self.run_testcase(2)
 
-    def test_3_sample(self):
+    def test_03_sample(self):
         self.run_testcase(3)
 
-    def test_4_only_query(self):
+    def test_04_only_query(self):
         self.run_testcase(4)
 
-    def test_5_no_query(self):
+    def test_05_no_query(self):
         self.run_testcase(5)
 
-    def test_6_mix(self):
+    def test_06_mix_small(self):
         self.run_testcase(6)
 
-    def test_7_mix(self):
+    def test_07_mix_mid(self):
         self.run_testcase(7)
+
+    def test_08_mix_large(self):
+        self.run_testcase(8)
+
+    def test_09_only_query_large(self):
+        self.run_testcase(9)
+
+    def test_10_no_query_large(self):
+        self.run_testcase(10)
 
 
 if __name__ == "__main__":

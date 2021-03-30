@@ -1,7 +1,7 @@
 import random
 
-n = 1000
-q = 1000
+n = 50000
+q = 50000
 
 print(n, q)
 L = random.choices(range(-10**5, 10**5+1), k=n)
