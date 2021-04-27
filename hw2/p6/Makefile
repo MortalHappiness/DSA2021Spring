@@ -7,7 +7,7 @@ CFLAGS := -Wall -static -O2 -std=c11
 
 # compile macros
 TARGET := main
-PROBLEM_ID := problem_id
+PROBLEM_ID := 44
 
 GITROOT := $(shell git rev-parse --show-toplevel)
 TEST_DIR := $(GITROOT)/tests/$(PROBLEM_ID)
