@@ -13,6 +13,8 @@
 
 #define MAX_LEN 100000
 
+int max(int a, int b) { return (a > b) ? a : b; }
+
 void remove_garble_text(char *D, char *G) {
     unsigned char c;
     int i, l, r, required, formed, len_D, len_G, ans_len, ans_l, ans_r;
@@ -65,7 +67,87 @@ void remove_garble_text(char *D, char *G) {
     }
 }
 
-void split_to_blocks(char *D) { printf("%s\n", D); }
+void _helper(int *table, const char *s, int l, int r) {
+    if (l > r)
+        return;
+    if (l == r) {
+        putchar(s[l]);
+        return;
+    }
+    if (s[l] == s[r]) {
+        putchar(s[l]);
+        putchar('|');
+        if (l + 1 <= r - 1) {
+            _helper(table, s, l + 1, r - 1);
+            putchar('|');
+        }
+        putchar(s[r]);
+        return;
+    }
+
+    int i, j, k, m, t, skip, jump_l, jump_num;
+    m = (l + r) >> 1;
+    table[l] = 0;
+    k = -1;
+    j = r - 1;
+    skip = 0;
+    jump_l = jump_num = -1;
+    for (i = l + 1; i <= m; ++i) {
+        if (j <= m)
+            break;
+        // Compute KMP prefix function
+        while (k >= 0 && s[l + k + 1] != s[i])
+            k = table[l + k] - 1;
+        if (s[l + k + 1] == s[i])
+            ++k;
+        table[i] = k + 1;
+
+        if (skip > 0) {
+            --skip;
+            continue;
+        }
+
+        t = 0;
+        while (s[l + t] == s[j + t]) {
+            if (j + t == r) {
+                for (k = 0; k <= t; ++k)
+                    putchar(s[l + k]);
+                putchar('|');
+                if (l + t + 1 <= j - 1) {
+                    _helper(table, s, l + t + 1, j - 1);
+                    putchar('|');
+                }
+                for (k = 0; k <= t; ++k)
+                    putchar(s[l + k]);
+                return;
+            }
+            if (jump_l != -1 && j + t + 1 == jump_l) {
+                t += jump_num + 1;
+                jump_l = -1;
+            } else {
+                ++t;
+            }
+        }
+        if (t == 0) {
+            --j;
+            skip = 0;
+            jump_l = -1;
+        } else {
+            skip = max(t - table[l + t], 0);
+            jump_l = j;
+            jump_num = table[l + t];
+            j -= (skip + 1);
+        }
+    }
+    for (k = l; k <= r; ++k)
+        putchar(s[k]);
+}
+
+void split_to_blocks(char *D) {
+    int table[MAX_LEN];
+    _helper(table, D, 0, strlen(D) - 1);
+    putchar('\n');
+}
 
 int main(int argc, char *argv[]) {
     int n, t;
