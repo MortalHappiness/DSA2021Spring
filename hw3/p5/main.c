@@ -59,16 +59,134 @@ Node *NewNode() {
     return node;
 }
 
+void _maintain_largest_priority(Node *node) {
+    node->largest_position = SELF;
+    node->largest_priority = node->diff_priority;
+    if (node->left && node->left->largest_priority + node->diff_priority >
+                          node->largest_priority) {
+        node->largest_priority =
+            node->left->largest_priority + node->diff_priority;
+        node->largest_position = LEFT;
+    }
+    if (node->right && node->right->largest_priority + node->diff_priority >
+                           node->largest_priority) {
+        node->largest_priority =
+            node->right->largest_priority + node->diff_priority;
+        node->largest_position = RIGHT;
+    }
+}
+
+Node *left_rotate(Node *root, Node *node) {
+    Node *child;
+    child = node->right;
+    node->right = child->left;
+    if (child->left != NULL)
+        child->left->parent = node;
+    child->parent = node->parent;
+    if (node->parent == NULL) {
+        root = child;
+    } else if (node == node->parent->left) {
+        node->parent->left = child;
+    } else {
+        node->parent->right = child;
+    }
+    child->left = node;
+    node->parent = child;
+
+    // maintain subtree_size
+    node->subtree_size = 1;
+    if (node->left != NULL)
+        node->subtree_size += node->left->subtree_size;
+    if (node->right != NULL)
+        node->subtree_size += node->right->subtree_size;
+    child->subtree_size = child->left->subtree_size + 1;
+    if (child->right != NULL)
+        child->subtree_size += child->right->subtree_size;
+
+    // maintain diff_priority
+    int node_diff_priority = node->diff_priority;
+    int child_diff_priority = child->diff_priority;
+    child->diff_priority = node_diff_priority + child_diff_priority;
+    node->diff_priority = -child_diff_priority;
+    if (node->right != NULL)
+        node->right->diff_priority += child_diff_priority;
+
+    // maintain largest_priority
+    _maintain_largest_priority(node);
+    _maintain_largest_priority(child);
+
+    return root;
+}
+
+Node *right_rotate(Node *root, Node *node) {
+    Node *child;
+    child = node->left;
+    node->left = child->right;
+    if (child->right != NULL)
+        child->right->parent = node;
+    child->parent = node->parent;
+    if (node->parent == NULL) {
+        root = child;
+    } else if (node == node->parent->left) {
+        node->parent->left = child;
+    } else {
+        node->parent->right = child;
+    }
+    child->right = node;
+    node->parent = child;
+
+    // maintain subtree_size
+    node->subtree_size = 1;
+    if (node->left != NULL)
+        node->subtree_size += node->left->subtree_size;
+    if (node->right != NULL)
+        node->subtree_size += node->right->subtree_size;
+    child->subtree_size = child->right->subtree_size + 1;
+    if (child->left != NULL)
+        child->subtree_size += child->left->subtree_size;
+
+    // maintain diff_priority
+    int node_diff_priority = node->diff_priority;
+    int child_diff_priority = child->diff_priority;
+    child->diff_priority = node_diff_priority + child_diff_priority;
+    node->diff_priority = -child_diff_priority;
+    if (node->left != NULL)
+        node->left->diff_priority += child_diff_priority;
+
+    // maintain largest_priority
+    _maintain_largest_priority(node);
+    _maintain_largest_priority(child);
+
+    return root;
+}
+
+Node *sift_up(Node *root, Node *node) {
+    while (node->parent != NULL &&
+           node->treap_priority > node->parent->treap_priority) {
+        if (node->parent->left == node) {
+            root = right_rotate(root, node->parent);
+        } else {
+            root = left_rotate(root, node->parent);
+        }
+    }
+    return root;
+}
+
+Node *sift_down(Node *root, Node *node) { return root; }
+
+// ========================================
+
 Node *Insert(Node *root, int index, int priority) {
     int current_index, diff, acc_priority;
-    Node *node, *parent, *newnode;
+    Node *node, *parent, *child, *newnode;
     Position position;
 
     newnode = NewNode();
     newnode->subtree_size = 1;
+    newnode->largest_position = SELF;
 
     if (root == NULL) {
-        newnode->diff_priority = priority;
+        newnode->largest_priority = newnode->diff_priority = priority;
         return newnode;
     }
 
@@ -97,7 +215,8 @@ Node *Insert(Node *root, int index, int priority) {
         }
     }
     newnode->parent = parent;
-    newnode->diff_priority = priority - acc_priority;
+    newnode->largest_priority = newnode->diff_priority =
+        priority - acc_priority;
 
     if (position == LEFT) {
         parent->left = newnode;
@@ -111,6 +230,30 @@ Node *Insert(Node *root, int index, int priority) {
         ++node->subtree_size;
         node = node->parent;
     }
+
+    // traverse up to root and update largest_priority
+    node = parent;
+    child = newnode;
+    while (node != NULL) {
+        if (node->left == child &&
+            (node->diff_priority + child->largest_priority >
+             node->largest_priority)) {
+            node->largest_priority =
+                node->diff_priority + child->largest_priority;
+            node->largest_position = LEFT;
+        }
+        if (node->right == child &&
+            (node->diff_priority + child->largest_priority >
+             node->largest_priority)) {
+            node->largest_priority =
+                node->diff_priority + child->largest_priority;
+            node->largest_position = RIGHT;
+        }
+        child = node;
+        node = node->parent;
+    }
+
+    root = sift_up(root, newnode);
 
     return root;
 }
@@ -196,6 +339,16 @@ int main(int argc, char *argv[]) {
                 break;
         }
     }
+    Node *root = NULL;
+    root = Insert(root, 0, 1);
+    root = Insert(root, 1, 2);
+    root = Insert(root, 1, 3);
+    root = Insert(root, 3, 4);
+    root = Insert(root, 2, 5);
+    root = Insert(root, 5, 6);
+    root = Insert(root, 4, 7);
+    root = Insert(root, 3, 8);
+    root = Insert(root, 0, 9);
     return 0;
 }
 #endif
