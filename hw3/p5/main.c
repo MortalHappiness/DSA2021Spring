@@ -329,6 +329,18 @@ Node *Delete(Node *root, int index) {
     }
 }
 
+// Split into two treaps and store them in the treap1_ptr and treap2_ptr
+// treap1 = [1..index], treap2 = [index+1..n]
+void Split(Node *root, int index, Node **treap1_ptr, Node **treap2_ptr) {
+    Node *node;
+    root = Insert(root, index, 0);
+    node = Get(root, index + 1);
+    node->treap_priority = MAX_PRIORITY;
+    root = sift_up(root, node);
+    *treap1_ptr = root->left;
+    *treap2_ptr = root->right;
+}
+
 // IncreasePriority, return tree root
 Node *IncreasePriority(Node *root, int left, int right, int priority) {
     return root;

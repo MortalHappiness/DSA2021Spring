@@ -82,6 +82,42 @@ TEST(TreapTest, Delete) {
     FreeTreap(root);
 }
 
+TEST(TreapTest, Split) {
+    Node *root = NULL;
+    root = Insert(root, 0, 6);
+    root = Insert(root, 1, 18);
+    root = Insert(root, 2, 17);
+    root = Insert(root, 1, 1);
+    root = Insert(root, 0, 17);
+    root = Insert(root, 1, 4);
+    root = Insert(root, 1, 6);
+    root = Insert(root, 0, 20);
+    root = Insert(root, 1, 4);
+
+    int array[9] = {0};
+    int n = inorder(root, array);
+    EXPECT_EQ(n, 9);
+    EXPECT_THAT(array, testing::ElementsAre(20, 4, 17, 6, 4, 6, 1, 18, 17));
+
+    Node *treap1, *treap2;
+    Split(root, 4, &treap1, &treap2);
+
+    for (int i = 0; i < 9; ++i)
+        array[i] = 0;
+    n = inorder(treap1, array);
+    EXPECT_EQ(n, 4);
+    EXPECT_THAT(array, testing::ElementsAre(20, 4, 17, 6, 0, 0, 0, 0, 0));
+
+    for (int i = 0; i < 9; ++i)
+        array[i] = 0;
+    n = inorder(treap2, array);
+    EXPECT_EQ(n, 5);
+    EXPECT_THAT(array, testing::ElementsAre(4, 6, 1, 18, 17, 0, 0, 0, 0));
+
+    FreeTreap(treap1);
+    FreeTreap(treap2);
+}
+
 } // namespace
 
 int main(int argc, char *argv[]) {
