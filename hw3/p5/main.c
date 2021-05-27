@@ -302,9 +302,26 @@ Node *Insert(Node *root, int index, int priority) {
     return root;
 }
 
+void delete_leaf_node(Node *node) {
+    Node *parent;
+    parent = node->parent;
+    if (parent->left == node) {
+        parent->left = NULL;
+    } else {
+        parent->right = NULL;
+    }
+    _maintain_largest_priority(parent);
+    // traverse up to root and decrease subtree size
+    while (parent != NULL) {
+        --parent->subtree_size;
+        parent = parent->parent;
+    }
+    free(node);
+}
+
 // Delete, return tree root
 Node *Delete(Node *root, int index) {
-    Node *node, *parent;
+    Node *node;
     node = Get(root, index);
     node->treap_priority = MIN_PRIORITY;
     root = sift_down(root, node);
@@ -312,19 +329,7 @@ Node *Delete(Node *root, int index) {
         free(node);
         return NULL;
     } else {
-        parent = node->parent;
-        if (parent->left == node) {
-            parent->left = NULL;
-        } else {
-            parent->right = NULL;
-        }
-        _maintain_largest_priority(parent);
-        // traverse up to root and decrease subtree size
-        while (parent != NULL) {
-            --parent->subtree_size;
-            parent = parent->parent;
-        }
-        free(node);
+        delete_leaf_node(node);
         return root;
     }
 }
@@ -339,6 +344,23 @@ void Split(Node *root, int index, Node **treap1_ptr, Node **treap2_ptr) {
     root = sift_up(root, node);
     *treap1_ptr = root->left;
     *treap2_ptr = root->right;
+    root->left->parent = NULL;
+    root->right->parent = NULL;
+    free(root);
+}
+
+// Merge two treaps, return the new tree root
+Node *Merge(Node *treap1, Node *treap2) {
+    Node *root, *node;
+    root = node = NewNode();
+    root->left = treap1;
+    root->right = treap2;
+    root->treap_priority = MIN_PRIORITY;
+    root->diff_priority = 0;
+    _maintain_largest_priority(root);
+    root = sift_down(root, root);
+    delete_leaf_node(node);
+    return root;
 }
 
 // IncreasePriority, return tree root

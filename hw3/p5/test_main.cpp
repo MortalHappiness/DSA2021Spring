@@ -82,7 +82,7 @@ TEST(TreapTest, Delete) {
     FreeTreap(root);
 }
 
-TEST(TreapTest, Split) {
+TEST(TreapTest, Split_Merge) {
     Node *root = NULL;
     root = Insert(root, 0, 6);
     root = Insert(root, 1, 18);
@@ -99,7 +99,7 @@ TEST(TreapTest, Split) {
     EXPECT_EQ(n, 9);
     EXPECT_THAT(array, testing::ElementsAre(20, 4, 17, 6, 4, 6, 1, 18, 17));
 
-    Node *treap1, *treap2;
+    Node *treap1, *treap2, *treap3;
     Split(root, 4, &treap1, &treap2);
 
     for (int i = 0; i < 9; ++i)
@@ -114,8 +114,31 @@ TEST(TreapTest, Split) {
     EXPECT_EQ(n, 5);
     EXPECT_THAT(array, testing::ElementsAre(4, 6, 1, 18, 17, 0, 0, 0, 0));
 
-    FreeTreap(treap1);
-    FreeTreap(treap2);
+    Split(treap2, 3, &treap2, &treap3);
+
+    for (int i = 0; i < 9; ++i)
+        array[i] = 0;
+    n = inorder(treap2, array);
+    EXPECT_EQ(n, 3);
+    EXPECT_THAT(array, testing::ElementsAre(4, 6, 1, 0, 0, 0, 0, 0, 0));
+
+    for (int i = 0; i < 9; ++i)
+        array[i] = 0;
+    n = inorder(treap3, array);
+    EXPECT_EQ(n, 2);
+    EXPECT_THAT(array, testing::ElementsAre(18, 17, 0, 0, 0, 0, 0, 0, 0));
+
+    treap1 = Merge(treap1, treap3);
+    n = inorder(treap1, array);
+    EXPECT_EQ(n, 6);
+    EXPECT_THAT(array, testing::ElementsAre(20, 4, 17, 6, 18, 17, 0, 0, 0));
+
+    root = Merge(treap2, treap1);
+    n = inorder(root, array);
+    EXPECT_EQ(n, 9);
+    EXPECT_THAT(array, testing::ElementsAre(4, 6, 1, 20, 4, 17, 6, 18, 17));
+
+    FreeTreap(root);
 }
 
 } // namespace
