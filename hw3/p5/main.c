@@ -344,8 +344,10 @@ void Split(Node *root, int index, Node **treap1_ptr, Node **treap2_ptr) {
     root = sift_up(root, node);
     *treap1_ptr = root->left;
     *treap2_ptr = root->right;
-    root->left->parent = NULL;
-    root->right->parent = NULL;
+    if (root->left)
+        root->left->parent = NULL;
+    if (root->right)
+        root->right->parent = NULL;
     free(root);
 }
 
@@ -365,11 +367,28 @@ Node *Merge(Node *treap1, Node *treap2) {
 
 // IncreasePriority, return tree root
 Node *IncreasePriority(Node *root, int left, int right, int priority) {
+    Node *treap1, *treap2, *treap3;
+    Split(root, right, &treap2, &treap3);
+    Split(treap2, left - 1, &treap1, &treap2);
+
+    treap2->diff_priority += priority;
+
+    root = Merge(treap1, treap2);
+    root = Merge(root, treap3);
     return root;
 }
 
-// return the largest priority
-int LargestPriority(Node *root, int left, int right) { return 0; }
+// Store the largest priority in ans, return the tree root
+Node *LargestPriority(Node *root, int left, int right, int *ans) {
+    Node *treap1, *treap2, *treap3;
+    Split(root, right, &treap2, &treap3);
+    Split(treap2, left - 1, &treap1, &treap2);
+    *ans = treap2->largest_priority;
+
+    root = Merge(treap1, treap2);
+    root = Merge(root, treap3);
+    return root;
+}
 
 // Reverse, return tree root
 Node *Reverse(Node *root, int left, int right) { return root; }
@@ -408,12 +427,14 @@ int inorder(Node *root, int *array) { return _inorder(root, array, 0, 0); }
 #ifndef __main__
 #define __main__
 int main(int argc, char *argv[]) {
-    int n, N, Q, i, x, y, z;
+    Node *root = NULL;
+    int n, N, Q, i, x, y, z, ans;
     if ((n = scanf("%d %d", &N, &Q) != 2))
         ERR_EXIT("scanf");
     for (i = 0; i < N; ++i) {
         if ((n = scanf("%d", &x) != 1))
             ERR_EXIT("scanf");
+        root = Insert(root, i, x);
     }
     for (i = 0; i < Q; ++i) {
         if ((n = scanf("%d", &x) != 1))
@@ -422,30 +443,38 @@ int main(int argc, char *argv[]) {
             case 1:
                 if ((n = scanf("%d %d", &x, &y) != 2))
                     ERR_EXIT("scanf");
+                root = Insert(root, y, x);
                 break;
             case 2:
                 if ((n = scanf("%d", &x) != 1))
                     ERR_EXIT("scanf");
+                root = Delete(root, x);
                 break;
             case 3:
                 if ((n = scanf("%d %d %d", &x, &y, &z) != 3))
                     ERR_EXIT("scanf");
+                root = IncreasePriority(root, x, y, z);
                 break;
             case 4:
                 if ((n = scanf("%d %d", &x, &y) != 2))
                     ERR_EXIT("scanf");
+                root = LargestPriority(root, x, y, &ans);
+                printf("%d\n", ans);
                 break;
             case 5:
                 if ((n = scanf("%d %d", &x, &y) != 2))
                     ERR_EXIT("scanf");
+                root = Reverse(root, x, y);
                 break;
             case 6:
+                root = RemoveLargestPriority(root);
                 break;
             default:
                 ERR_EXIT("Invalid operation number");
                 break;
         }
     }
+    FreeTreap(root);
     return 0;
 }
 #endif

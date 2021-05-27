@@ -141,6 +141,63 @@ TEST(TreapTest, Split_Merge) {
     FreeTreap(root);
 }
 
+TEST(TreapTest, LargestPriority) {
+    Node *root = NULL;
+    root = Insert(root, 0, -9);
+    root = Insert(root, 0, -7);
+    root = Insert(root, 1, -2);
+    root = Insert(root, 0, 7);
+    root = Insert(root, 1, 6);
+    root = Insert(root, 3, -3);
+    root = Insert(root, 2, -4);
+    root = Insert(root, 2, 1);
+    root = Insert(root, 6, 0);
+
+    int array[9] = {0};
+    int n = inorder(root, array);
+    EXPECT_EQ(n, 9);
+    EXPECT_THAT(array, testing::ElementsAre(7, 6, 1, -4, -7, -3, 0, -2, -9));
+
+    root = LargestPriority(root, 3, 8, &n);
+    EXPECT_EQ(n, 1);
+    root = LargestPriority(root, 2, 5, &n);
+    EXPECT_EQ(n, 6);
+    root = LargestPriority(root, 1, 9, &n);
+    EXPECT_EQ(n, 7);
+    root = LargestPriority(root, 8, 9, &n);
+    EXPECT_EQ(n, -2);
+
+    FreeTreap(root);
+}
+
+TEST(TreapTest, IncreasePriority) {
+    Node *root = NULL;
+    root = Insert(root, 0, 1);
+    root = Insert(root, 0, -5);
+    root = Insert(root, 2, -2);
+    root = Insert(root, 1, 0);
+    root = Insert(root, 4, -1);
+    root = Insert(root, 0, 3);
+    root = Insert(root, 2, -4);
+    root = Insert(root, 3, -2);
+    root = Insert(root, 1, -5);
+
+    int array[9] = {0};
+    int n = inorder(root, array);
+    EXPECT_EQ(n, 9);
+    EXPECT_THAT(array, testing::ElementsAre(3, -5, -5, -4, -2, 0, 1, -2, -1));
+
+    root = IncreasePriority(root, 3, 6, 2);
+    n = inorder(root, array);
+    EXPECT_EQ(n, 9);
+    EXPECT_THAT(array, testing::ElementsAre(3, -5, -3, -2, 0, 2, 1, -2, -1));
+
+    root = IncreasePriority(root, 1, 9, -1);
+    n = inorder(root, array);
+    EXPECT_EQ(n, 9);
+    EXPECT_THAT(array, testing::ElementsAre(2, -6, -4, -3, -1, 1, 0, -3, -2));
+    FreeTreap(root);
+}
 } // namespace
 
 int main(int argc, char *argv[]) {
