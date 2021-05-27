@@ -8,7 +8,7 @@ CFLAGS := -Wall -static -O2 -std=c11
 CXXFLAGS := -Wall
 
 # compile macros
-TARGET := main test_main
+TARGET := main
 PROBLEM_ID := 48
 
 GITROOT := $(shell git rev-parse --show-toplevel)
@@ -16,6 +16,8 @@ TEST_DIR := $(GITROOT)/tests/$(PROBLEM_ID)
 
 # non-phony targets
 main: main.o
+
+test_main.o: main.c
 
 test_main: test_main.o
 	$(CXX) $(CXXFLAGS) $^ -o $@ -lgtest -lpthread
