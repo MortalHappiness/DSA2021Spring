@@ -198,6 +198,30 @@ TEST(TreapTest, IncreasePriority) {
     EXPECT_THAT(array, testing::ElementsAre(2, -6, -4, -3, -1, 1, 0, -3, -2));
     FreeTreap(root);
 }
+
+TEST(TreapTest, Insert_Query_Error1) {
+    Node *root = NULL;
+    root = Insert(root, 0, -3);
+    root = Insert(root, 1, -1);
+    root = Insert(root, 2, -4);
+    root = Insert(root, 3, -5);
+    root = Insert(root, 4, 2);
+
+    int array[6] = {0};
+    int n = inorder(root, array);
+    EXPECT_EQ(n, 5);
+    EXPECT_THAT(array, testing::ElementsAre(-3, -1, -4, -5, 2, 0));
+
+    Insert(root, 3, -2);
+    n = inorder(root, array);
+    EXPECT_EQ(n, 6);
+    EXPECT_THAT(array, testing::ElementsAre(-3, -1, -4, -2, -5, 2));
+
+    root = LargestPriority(root, 2, 6, &n);
+    EXPECT_EQ(n, 2);
+    root = LargestPriority(root, 1, 5, &n);
+    EXPECT_EQ(n, -1);
+}
 } // namespace
 
 int main(int argc, char *argv[]) {

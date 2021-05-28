@@ -311,9 +311,11 @@ void delete_leaf_node(Node *node) {
         parent->right = NULL;
     }
     _maintain_largest_priority(parent);
-    // traverse up to root and decrease subtree size
+    // traverse up to root and decrease subtree size and maintain
+    // largest_priority
     while (parent != NULL) {
         --parent->subtree_size;
+        _maintain_largest_priority(parent);
         parent = parent->parent;
     }
     free(node);
@@ -359,6 +361,15 @@ Node *Merge(Node *treap1, Node *treap2) {
     root->right = treap2;
     root->treap_priority = MIN_PRIORITY;
     root->diff_priority = 0;
+    root->subtree_size = 1;
+    if (treap1) {
+        treap1->parent = root;
+        root->subtree_size += treap1->subtree_size;
+    }
+    if (treap2) {
+        treap2->parent = root;
+        root->subtree_size += treap2->subtree_size;
+    }
     _maintain_largest_priority(root);
     root = sift_down(root, root);
     delete_leaf_node(node);
@@ -381,6 +392,7 @@ Node *IncreasePriority(Node *root, int left, int right, int priority) {
 // Store the largest priority in ans, return the tree root
 Node *LargestPriority(Node *root, int left, int right, int *ans) {
     Node *treap1, *treap2, *treap3;
+    treap1 = treap2 = treap3 = NULL;
     Split(root, right, &treap2, &treap3);
     Split(treap2, left - 1, &treap1, &treap2);
     *ans = treap2->largest_priority;
