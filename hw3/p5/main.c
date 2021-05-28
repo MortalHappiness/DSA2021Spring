@@ -59,7 +59,38 @@ Node *NewNode() {
     return node;
 }
 
+void _fix_reverse(Node *node) {
+    if (!node || !node->subtree_reversed)
+        return;
+    node->subtree_reversed = false;
+    Node *left, *right;
+    left = node->left;
+    right = node->right;
+    if (left)
+        left->subtree_reversed = !(left->subtree_reversed);
+    if (right)
+        right->subtree_reversed = !(right->subtree_reversed);
+    node->left = right;
+    node->right = left;
+    // maintain largest priority
+    node->largest_position = SELF;
+    node->largest_priority = node->diff_priority;
+    if (node->right && node->right->largest_priority + node->diff_priority >
+                           node->largest_priority) {
+        node->largest_priority =
+            node->right->largest_priority + node->diff_priority;
+        node->largest_position = RIGHT;
+    }
+    if (node->left && node->left->largest_priority + node->diff_priority >=
+                          node->largest_priority) {
+        node->largest_priority =
+            node->left->largest_priority + node->diff_priority;
+        node->largest_position = LEFT;
+    }
+}
+
 void _maintain_largest_priority(Node *node) {
+    _fix_reverse(node);
     node->largest_position = SELF;
     node->largest_priority = node->diff_priority;
     if (node->right && node->right->largest_priority + node->diff_priority >
@@ -78,6 +109,9 @@ void _maintain_largest_priority(Node *node) {
 
 // left rotate, return tree root
 Node *left_rotate(Node *root, Node *node) {
+    _fix_reverse(node->parent);
+    _fix_reverse(node);
+    _fix_reverse(node->right);
     Node *child;
     child = node->right;
     node->right = child->left;
@@ -123,6 +157,9 @@ Node *left_rotate(Node *root, Node *node) {
 
 // right rotate, return tree root
 Node *right_rotate(Node *root, Node *node) {
+    _fix_reverse(node->parent);
+    _fix_reverse(node);
+    _fix_reverse(node->left);
     Node *child;
     child = node->left;
     node->left = child->right;
@@ -170,6 +207,7 @@ Node *right_rotate(Node *root, Node *node) {
 Node *sift_up(Node *root, Node *node) {
     while (node->parent != NULL &&
            node->treap_priority > node->parent->treap_priority) {
+        _fix_reverse(node->parent);
         if (node->parent->left == node) {
             root = right_rotate(root, node->parent);
         } else {
@@ -184,6 +222,7 @@ Node *sift_down(Node *root, Node *node) {
     Position largest;
     int largest_priority;
     while (1) {
+        _fix_reverse(node);
         largest = SELF;
         largest_priority = node->treap_priority;
         if (node->left && node->left->treap_priority > largest_priority) {
@@ -213,6 +252,7 @@ Node *Get(Node *root, const int index) {
     current_index = diff = 0;
     Node *node = root;
     while (node != NULL) {
+        _fix_reverse(node);
         // compute current_index
         if (node->right == NULL) {
             diff = node->subtree_size;
@@ -253,6 +293,7 @@ Node *Insert(Node *root, int index, int priority) {
     node = root;
     parent = NULL;
     while (node != NULL) {
+        _fix_reverse(node);
         // compute current_index
         if (node->right == NULL) {
             diff = node->subtree_size;
@@ -283,16 +324,11 @@ Node *Insert(Node *root, int index, int priority) {
         parent->right = newnode;
     }
 
-    // traverse up to root and increase subtree size
+    // traverse up to root and increase subtree size and update largest_priority
     node = parent;
     while (node != NULL) {
         ++node->subtree_size;
-        node = node->parent;
-    }
-
-    // traverse up to root and update largest_priority
-    node = parent;
-    while (node != NULL) {
+        _fix_reverse(node);
         _maintain_largest_priority(node);
         node = node->parent;
     }
@@ -310,11 +346,13 @@ void delete_leaf_node(Node *node) {
     } else {
         parent->right = NULL;
     }
+    _fix_reverse(parent);
     _maintain_largest_priority(parent);
     // traverse up to root and decrease subtree size and maintain
     // largest_priority
     while (parent != NULL) {
         --parent->subtree_size;
+        _fix_reverse(parent);
         _maintain_largest_priority(parent);
         parent = parent->parent;
     }
@@ -325,6 +363,7 @@ void delete_leaf_node(Node *node) {
 Node *Delete(Node *root, int index) {
     Node *node;
     node = Get(root, index);
+    _fix_reverse(node);
     node->treap_priority = MIN_PRIORITY;
     root = sift_down(root, node);
     if (node == root) {
@@ -339,11 +378,16 @@ Node *Delete(Node *root, int index) {
 // Split into two treaps and store them in the treap1_ptr and treap2_ptr
 // treap1 = [1..index], treap2 = [index+1..n]
 void Split(Node *root, int index, Node **treap1_ptr, Node **treap2_ptr) {
+    _fix_reverse(root);
+
     Node *node;
     root = Insert(root, index, 0);
     node = Get(root, index + 1);
+    _fix_reverse(node);
     node->treap_priority = MAX_PRIORITY;
     root = sift_up(root, node);
+    _fix_reverse(root->left);
+    _fix_reverse(root->right);
     *treap1_ptr = root->left;
     *treap2_ptr = root->right;
     if (root->left)
@@ -355,6 +399,9 @@ void Split(Node *root, int index, Node **treap1_ptr, Node **treap2_ptr) {
 
 // Merge two treaps, return the new tree root
 Node *Merge(Node *treap1, Node *treap2) {
+    _fix_reverse(treap1);
+    _fix_reverse(treap2);
+
     Node *root, *node;
     root = node = NewNode();
     root->left = treap1;
@@ -373,6 +420,7 @@ Node *Merge(Node *treap1, Node *treap2) {
     _maintain_largest_priority(root);
     root = sift_down(root, root);
     delete_leaf_node(node);
+    _fix_reverse(root);
     return root;
 }
 
@@ -403,10 +451,43 @@ Node *LargestPriority(Node *root, int left, int right, int *ans) {
 }
 
 // Reverse, return tree root
-Node *Reverse(Node *root, int left, int right) { return root; }
+Node *Reverse(Node *root, int left, int right) {
+    Node *treap1, *treap2, *treap3;
+    treap1 = treap2 = treap3 = NULL;
+    Split(root, right, &treap2, &treap3);
+    Split(treap2, left - 1, &treap1, &treap2);
+
+    treap2->subtree_reversed = true;
+
+    root = Merge(treap1, treap2);
+    root = Merge(root, treap3);
+    return root;
+}
 
 // Remove largest priority, return tree root
-Node *RemoveLargestPriority(Node *root) { return root; }
+Node *RemoveLargestPriority(Node *root) {
+    Node *node;
+    node = root;
+    while (1) {
+        _fix_reverse(node);
+        if (node->largest_position == SELF)
+            break;
+        if (node->largest_position == LEFT) {
+            node = node->left;
+        } else {
+            node = node->right;
+        }
+    }
+    node->treap_priority = MIN_PRIORITY;
+    root = sift_down(root, node);
+    if (node == root) {
+        free(node);
+        return NULL;
+    } else {
+        delete_leaf_node(node);
+        return root;
+    }
+}
 
 void FreeTreap(Node *root) {
     if (root == NULL)
@@ -425,6 +506,7 @@ int _inorder(Node *root, int *array, int idx, int acc_priority) {
         (root->right && root->right->parent != root))
         ERR_EXIT("Parent link corrupted");
     int priority = acc_priority + root->diff_priority;
+    _fix_reverse(root);
     idx = _inorder(root->left, array, idx, priority);
     array[idx++] = priority;
     idx = _inorder(root->right, array, idx, priority);
